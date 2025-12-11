@@ -1,0 +1,94 @@
+//inclue libraries
+#include <Servo.h>
+#include <Pixy2.h> 
+
+//Define what pins are associated with which servos
+#define blue_die 2
+#define red_die 1
+#define green_die 3
+
+#define bluestop 790
+#define redstop 820
+
+Servo myservo;
+Servo brush;
+Pixy2 pixy;
+
+int infr_pin = A0;
+int val;
+
+
+void setup() {
+  
+//initialize everything and attach the servos to the correct pins
+  pixy.init();
+
+  Serial.begin(115200);
+  pinMode(A0, INPUT);
+  myservo.attach(2);
+  brush.attach(4);
+  //orgin();
+  pinMode(53, OUTPUT);
+  digitalWrite(53, HIGH);
+  brush.write(180);
+
+}
+
+void loop() {
+
+  uint16_t blocks;
+//get the cam data every loop
+
+  pixy.ccc.getBlocks();
+
+  if (pixy.ccc.numBlocks){
+    //wait 0.5 seconds so the servo stops and dice can fall into the sorting system again.
+    delay(500);
+    int object = pixy.ccc.blocks[0].m_signature;
+
+//Switch for each die, if blue turn one way, if red, turn another. easy to change the direction and dice color in practice.
+    switch (object){
+      case blue_die:
+        Serial.println("Blue");
+        left();
+        pause();
+        break;
+      
+      case red_die:
+        Serial.println("Red");
+        right();
+        pause();
+        break;
+
+      case green_die:
+        Serial.println("Green");
+        orgin();
+        break;
+
+      default:
+        Serial.println("Nothing");
+        //orgin();
+        break;
+
+    }
+
+
+  }
+
+}
+
+//functions write fowards, backwards, or stop to servo.
+void pause(){
+  myservo.write(90);
+  delay(1000);
+}
+
+void right(){
+  myservo.write(0);
+  delay(redstop);
+}
+
+void left(){
+  myservo.write(180);
+  delay(bluestop);
+}
